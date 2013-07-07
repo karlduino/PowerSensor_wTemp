@@ -11,7 +11,8 @@ a email/text.
   off.  I'm using telnet with a yahoo account, following
   [this post](http://bit.ly/12PivcA) from Rob Glinka.
 
-Of course, if my web connection goes down (my cable modem or router),
-this won't work.
+
+My plan is to power the arduino with a UPS. But, of course, if my web
+connection goes down (my cable modem or router), this won't work.
 
        
