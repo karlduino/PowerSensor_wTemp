@@ -46,14 +46,14 @@ void loop() {
  if(digitalRead(inputPin) == HIGH) {
    digitalWrite(greenPin, HIGH);
    digitalWrite(redPin, LOW);
-   numberSent = 0;
  }
  else {
    currentTime = millis();
    digitalWrite(greenPin, LOW);
    digitalWrite(redPin, HIGH);
   
-   if(numberSent==0 || currentTime > lastTimeSent + halfhour) {
+   if(numberSent==0 || (currentTime > lastTimeSent + halfhour &&
+                        numberSent < 5)) {
      numberSent++;
      lastTimeSent = millis();
      Serial.print("Sending email. ");
