@@ -28,7 +28,7 @@ byte server[] = { 63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.
 
 unsigned long lastTimeSent, currentTime;
 static unsigned long halfhour = 1800000;
-static MAX_NUM_EMAILS = 5;
+static unsigned int MAX_NUM_EMAILS = 5;
 int numberSent = 0;
 
 void setup() {
