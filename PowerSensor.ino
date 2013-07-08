@@ -28,8 +28,9 @@ byte server[] = { 63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.
 
 unsigned long lastTimeSent, currentTime;
 static unsigned long halfhour = 1800000;
-static unsigned int MAX_NUM_EMAILS = 5;
+static unsigned int MAX_NUM_EMAILS = 8;
 int numberSent = 0;
+bool lastSaidOff = false;
 
 void setup() {
   pinMode(inputPin, INPUT);
@@ -47,26 +48,39 @@ void loop() {
  if(digitalRead(inputPin) == HIGH) {
    digitalWrite(greenPin, HIGH);
    digitalWrite(redPin, LOW);
+
+   if(numberSent < MAX_NUM_EMAILS &&
+      (currentTime > lastTimeSent + halfhour ||
+       lastSaidOff)) {
+     numberSent++;
+     lastTimeSent = millis();
+     Serial.print("Sending email (power is on). ");
+     Serial.println(numberSent);
+     lastSaidOff = false;
+     send_email("The sump pump is working again.");
+   }
  }
  else {
    currentTime = millis();
    digitalWrite(greenPin, LOW);
    digitalWrite(redPin, HIGH);
   
-   if(numberSent==0 || (currentTime > lastTimeSent + halfhour &&
-                        numberSent < MAX_NUM_EMAILS)) {
+   if(numberSent==0 || !lastSaidOff ||
+      (currentTime > lastTimeSent + halfhour &&
+       numberSent < MAX_NUM_EMAILS)) {
      numberSent++;
      lastTimeSent = millis();
-     Serial.print("Sending email. ");
+     Serial.print("Sending email (power is off). ");
      Serial.println(numberSent);
-     send_email();
+     lastSaidOff = true;
+     send_email("The sump pump is down");
    }
 
  }
 }
 
 
-void send_email()
+void send_email(char message[])
 {
   Serial.println("Connecting...");
   if(client.connect(server, 25)) {
@@ -86,7 +100,8 @@ void send_email()
     client.println(to_email);
     delay(50);
     client.println("data");
-    client.print("The sump pump is down. (");
+    client.print(message);
+    client.print(" (");
     client.print(numberSent);
     client.println(")");
     client.println(".");
