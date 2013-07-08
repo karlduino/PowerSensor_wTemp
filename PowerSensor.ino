@@ -28,6 +28,7 @@ byte server[] = { 63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.
 
 unsigned long lastTimeSent, currentTime;
 static unsigned long halfhour = 1800000;
+static MAX_NUM_EMAILS = 5;
 int numberSent = 0;
 
 void setup() {
@@ -53,7 +54,7 @@ void loop() {
    digitalWrite(redPin, HIGH);
   
    if(numberSent==0 || (currentTime > lastTimeSent + halfhour &&
-                        numberSent < 5)) {
+                        numberSent < MAX_NUM_EMAILS)) {
      numberSent++;
      lastTimeSent = millis();
      Serial.print("Sending email. ");
