@@ -27,10 +27,13 @@ EthernetClient client;
 byte server[] = { 63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.com)
 
 unsigned long lastTimeSent, currentTime;
-static unsigned long halfhour = 1800000;
-static unsigned int MAX_NUM_EMAILS = 8;
 int numberSent = 0;
 bool lastSaidOff = false;
+static unsigned long TIME_BETWEEN_TEXTS = 1800000; // half hour
+static unsigned int MAX_NUM_EMAILS = 8;
+static unsigned int DELAY_BEFORE_TEXT = 1000; // one second
+static unsigned int CONNECTION_DELAY = 1000; // delay before connecting and after email
+static unsigned int DELAY_BETWEEN_COMMANDS = 50; // delay between commands to yahoo
 
 void setup() {
   pinMode(inputPin, INPUT);
@@ -50,7 +53,7 @@ void loop() {
    digitalWrite(redPin, LOW);
 
    if(numberSent < MAX_NUM_EMAILS &&
-      (currentTime > lastTimeSent + halfhour ||
+      (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS ||
        lastSaidOff)) {
      numberSent++;
      lastTimeSent = millis();
@@ -61,19 +64,23 @@ void loop() {
    }
  }
  else {
-   currentTime = millis();
-   digitalWrite(greenPin, LOW);
-   digitalWrite(redPin, HIGH);
+   delay(DELAY_BEFORE_TEXT);
+
+   if(digitalRead(inputPin) == LOW) { // not a false alarm
+     currentTime = millis();
+     digitalWrite(greenPin, LOW);
+     digitalWrite(redPin, HIGH);
   
-   if(numberSent==0 || !lastSaidOff ||
-      (currentTime > lastTimeSent + halfhour &&
-       numberSent < MAX_NUM_EMAILS)) {
-     numberSent++;
-     lastTimeSent = millis();
-     Serial.print("Sending email (power is off). ");
-     Serial.println(numberSent);
-     lastSaidOff = true;
-     send_email("The sump pump is DOWN!");
+     if(numberSent==0 || !lastSaidOff ||
+        (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS &&
+         numberSent < MAX_NUM_EMAILS)) {
+       numberSent++;
+       lastTimeSent = millis();
+       Serial.print("Sending email (power is off). ");
+       Serial.println(numberSent);
+       lastSaidOff = true;
+       send_email("The sump pump is DOWN!");
+     }
    }
 
  }
@@ -86,30 +93,30 @@ void send_email(char message[])
   if(client.connect(server, 25)) {
  
     Serial.println("Connected.");
-    delay(1000);
+    delay(CONNECTION_DELAY);
     Serial.println("Sending...");
 
     client.println("HELO smpt.mail.yahoo.com");
-    delay(50);
+    delay(DELAY_BETWEEN_COMMANDS);
     client.print("AUTH PLAIN ");
     client.println(email_auth);
-    delay(50);
+    delay(DELAY_BETWEEN_COMMANDS);
     client.print("mail from:");
     client.println(from_email);
     client.print("rcpt to:");
     client.println(to_email);
-    delay(50);
+    delay(DELAY_BETWEEN_COMMANDS);
     client.println("data");
     client.print(" [msg ");
     client.print(numberSent);
     client.print("]: ");
     client.println(message);
     client.println(".");
-    delay(50);
+    delay(DELAY_BETWEEN_COMMANDS);
 
     Serial.println("Disconnecting...");
     client.println("quit");
-    delay(1000);
+    delay(CONNECTION_DELAY);
     Serial.println("Done.");
     client.stop();
   } else {
