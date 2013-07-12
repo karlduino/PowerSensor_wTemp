@@ -73,7 +73,7 @@ void loop() {
      Serial.print("Sending email (power is off). ");
      Serial.println(numberSent);
      lastSaidOff = true;
-     send_email("The sump pump is down");
+     send_email("The sump pump is DOWN!");
    }
 
  }
@@ -100,10 +100,10 @@ void send_email(char message[])
     client.println(to_email);
     delay(50);
     client.println("data");
-    client.print(message);
-    client.print(" (");
+    client.print(" [msg ");
     client.print(numberSent);
-    client.println(")");
+    client.print("]: ");
+    client.println(message);
     client.println(".");
     delay(50);
 
