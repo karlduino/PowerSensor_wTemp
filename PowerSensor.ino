@@ -13,8 +13,8 @@
 #include <Ethernet.h>
 
 static int inputPin = 2;
-static int redPin = 7;
-static int greenPin = 8;
+static int redPin = A5;
+static int greenPin = A2;
 
 // private info [made generic here]
 byte mac[] = { 0x00, 0xC1, 0x4E, 0xF2, 0xDA, 0x30 }; // local MAC
