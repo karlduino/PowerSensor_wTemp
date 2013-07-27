@@ -45,6 +45,10 @@ void setup() {
 
   lastTimeSent = millis();
   Serial.println("Ready.");
+
+  flash_leds(5, 250);
+  send_email("Sensor ready.");
+  flash_leds(5, 250);
 }
 
 void loop() {
@@ -121,5 +125,20 @@ void send_email(char message[])
     client.stop();
   } else {
     Serial.println("Connection failed.");
+  }
+}
+
+void flash_leds(int n_times, long delay_amount)
+{
+  for(int i=0; i<n_times; i++) {
+    digitalWrite(greenPin, HIGH);
+    digitalWrite(redPin, HIGH);
+
+    delay(delay_amount);
+
+    digitalWrite(greenPin, LOW);
+    digitalWrite(redPin, LOW);
+
+    delay(delay_amount);
   }
 }
