@@ -18,13 +18,12 @@ static int greenPin = A2;
 
 // private info [made generic here]
 byte mac[] = { 0x00, 0xC1, 0x4E, 0xF2, 0xDA, 0x30 }; // local MAC
-char email_auth[] = "encoded_email_and_password";
 char from_email[] = "<email_addr@yahoo.com>";
 char to_email[] = "<another_email@gmail.com>";
+byte server[] = {63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.com)
 // end of private info
 
 EthernetClient client;
-byte server[] = { 63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.com)
 
 unsigned long lastTimeSent, currentTime;
 int numberSent = 0;
@@ -100,10 +99,7 @@ void send_email(char message[])
     delay(CONNECTION_DELAY);
     Serial.println("Sending...");
 
-    client.println("HELO smpt.mail.yahoo.com");
-    delay(DELAY_BETWEEN_COMMANDS);
-    client.print("AUTH PLAIN ");
-    client.println(email_auth);
+    client.println("HELO smtp");
     delay(DELAY_BETWEEN_COMMANDS);
     client.print("mail from:");
     client.println(from_email);
@@ -111,7 +107,7 @@ void send_email(char message[])
     client.println(to_email);
     delay(DELAY_BETWEEN_COMMANDS);
     client.println("data");
-    client.print(" [msg ");
+    client.print("[msg ");
     client.print(numberSent);
     client.print("]: ");
     client.println(message);
