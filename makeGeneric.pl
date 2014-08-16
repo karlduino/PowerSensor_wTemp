@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-# insert generic info into PowerSensor.ino
+# insert generic info into TembooAccount.h
 
-$origfile = "PowerSensor.ino";
+$origfile = "TembooAccount.h";
 $tmpfile = "tmp";
-$insertion = "generic.txt";
+$insertion = "Headers/generic.h";
 
 if(-e $tmpfile) { die("tmp file already exists"); }
 system("mv $origfile $tmpfile");

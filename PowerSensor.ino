@@ -2,51 +2,58 @@
  PowerSensor
  
  Sense power on pin 2
- Power on: light led on pin 8 (green)
- Power off: light led on pin 7 (red)
+ Power on: green led on pin A2
+ Power off: red led on pin A5
 
- If power goes off, send an email (using telnet to yahoo account)
- Following this post from Rob Glinka: http://bit.ly/12PivcA
+ If power goes off, send an email (using gmail account and temboo service)
+ Following this sketch: https://temboo.com/arduino/yun/send-an-email
 **/
 
 #include <SPI.h>
 #include <Ethernet.h>
 
+#define DEBUG
+
 static int inputPin = 2;
 static int redPin = A5;
 static int greenPin = A2;
 
-// private info [made generic here]
-byte mac[] = { 0x00, 0xC1, 0x4E, 0xF2, 0xDA, 0x30 }; // local MAC
-char from_email[] = "<email_addr@yahoo.com>";
-char to_email[] = "<another_email@gmail.com>";
-byte server[] = {63, 250, 193, 228 }; // Mail server address  (smtp.mail.yahoo.com)
-// end of private info
-
-EthernetClient client;
+#include <Bridge.h>
+#include <Temboo.h>
+#include "TembooAccount.h" // contains Temboo account information
 
 unsigned long lastTimeSent, currentTime;
 int numberSent = 0;
 bool lastSaidOff = false;
-static unsigned long TIME_BETWEEN_TEXTS = 1800000; // half hour
+static unsigned long TIME_BETWEEN_TEXTS = 600000; // 10 minutes
 static unsigned int MAX_NUM_EMAILS = 8;
-static unsigned int DELAY_BEFORE_TEXT = 1000; // one second
-static unsigned int CONNECTION_DELAY = 1000; // delay before connecting and after email
-static unsigned int DELAY_BETWEEN_COMMANDS = 50; // delay between commands to yahoo
+static unsigned int STARTUP_DELAY = 60000; // one minute
+static unsigned int DELAY_BEFORE_TEXT = 5000; // 5 seconds
 
 void setup() {
   pinMode(inputPin, INPUT);
+  digitalWrite(inputPin, HIGH);
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);  
 
-  Ethernet.begin(mac);
+#ifdef DEBUG
   Serial.begin(9600);
-
-  lastTimeSent = millis();
-  Serial.println("Ready.");
-
+  while(!Serial);
+  Serial.println("Starting up.");
+#endif  
+  
   flash_leds(5, 250);
-  send_email("Sensor ready.");
+  digitalWrite(redPin, HIGH);
+  digitalWrite(greenPin, HIGH);  
+  delay(STARTUP_DELAY);
+  digitalWrite(redPin, LOW);
+  digitalWrite(greenPin, LOW);  
+
+#ifdef DEBUG
+  Serial.println("Done with startup.");
+#endif  
+
+  send_email("Sump ready", "Sensor ready.");
   flash_leds(5, 250);
 }
 
@@ -58,12 +65,14 @@ void loop() {
    if(numberSent < MAX_NUM_EMAILS &&
       (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS ||
        lastSaidOff)) {
-     numberSent++;
-     lastTimeSent = millis();
+#ifdef DEBUG
      Serial.print("Sending email (power is on). ");
      Serial.println(numberSent);
+#endif
+     numberSent++;
+     lastTimeSent = millis();
      lastSaidOff = false;
-     send_email("The sump pump is working again.");
+     send_email("Sump working", "The sump pump is working again.");
    }
  }
  else {
@@ -77,12 +86,14 @@ void loop() {
      if(numberSent==0 || !lastSaidOff ||
         (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS &&
          numberSent < MAX_NUM_EMAILS)) {
-       numberSent++;
-       lastTimeSent = millis();
+#ifdef DEBUG
        Serial.print("Sending email (power is off). ");
        Serial.println(numberSent);
+#endif
+       numberSent++;
+       lastTimeSent = millis();
        lastSaidOff = true;
-       send_email("The sump pump is DOWN!");
+       send_email("Sump down", "The sump pump is DOWN!");
      }
    }
 
@@ -90,38 +101,72 @@ void loop() {
 }
 
 
-void send_email(char message[])
+void send_email(char subject[], char message[])
 {
-  Serial.println("Connecting...");
-  if(client.connect(server, 25)) {
- 
-    Serial.println("Connected.");
-    delay(CONNECTION_DELAY);
-    Serial.println("Sending...");
+  bool success = false;
 
-    client.println("HELO smtp");
-    delay(DELAY_BETWEEN_COMMANDS);
-    client.print("mail from:");
-    client.println(from_email);
-    client.print("rcpt to:");
-    client.println(to_email);
-    delay(DELAY_BETWEEN_COMMANDS);
-    client.println("data");
-    client.print("[msg ");
-    client.print(numberSent);
-    client.print("]: ");
-    client.println(message);
-    client.println(".");
-    delay(DELAY_BETWEEN_COMMANDS);
+  while (!success) {
 
-    Serial.println("Disconnecting...");
-    client.println("quit");
-    delay(CONNECTION_DELAY);
-    Serial.println("Done.");
-    client.stop();
-  } else {
-    Serial.println("Connection failed.");
+#ifdef DEBUG    
+    Serial.println("Running SendAnEmail...");
+#endif
+
+    TembooChoreo SendEmailChoreo;
+
+    // invoke the Temboo client
+    // NOTE that the client must be reinvoked, and repopulated with
+    // appropriate arguments, each time its run() method is called.
+    SendEmailChoreo.begin();
+    
+    // set Temboo account credentials
+    SendEmailChoreo.setAccountName(TEMBOO_ACCOUNT);
+    SendEmailChoreo.setAppKeyName(TEMBOO_APP_KEY_NAME);
+    SendEmailChoreo.setAppKey(TEMBOO_APP_KEY);
+
+    // identify the Temboo Library choreo to run (Google > Gmail > SendEmail)
+    SendEmailChoreo.setChoreo("/Library/Google/Gmail/SendEmail");
+
+    // set the required choreo inputs
+    // see https://www.temboo.com/library/Library/Google/Gmail/SendEmail/ 
+    // for complete details about the inputs for this Choreo
+
+    // the first input is your Gmail email address
+    SendEmailChoreo.addInput("Username", GMAIL_USER_NAME);
+    // next is your Gmail password.
+    SendEmailChoreo.addInput("Password", GMAIL_PASSWORD);
+    // who to send the email to
+    SendEmailChoreo.addInput("ToAddress", TO_EMAIL_ADDRESS);
+    // then a subject line
+    SendEmailChoreo.addInput("Subject", subject);
+
+     // next comes the message body, the main content of the email   
+    SendEmailChoreo.addInput("MessageBody", message);
+
+    // tell the Choreo to run and wait for the results. The 
+    // return code (returnCode) will tell us whether the Temboo client 
+    // was able to send our request to the Temboo servers
+    unsigned int returnCode = SendEmailChoreo.run();
+
+    // a return code of zero (0) means everything worked
+    if (returnCode == 0) {
+#ifdef DEBUG      
+        Serial.println("Success! Email sent!");
+#endif        
+        success = true;
+    } else {
+      // a non-zero return code means there was an error
+      // read and print the error message
+      while (SendEmailChoreo.available()) {
+#ifdef DEBUG      
+        char c = SendEmailChoreo.read();
+        Serial.print(c);
+#endif
+      }
+    } 
+    SendEmailChoreo.close();
+
   }
+
 }
 
 void flash_leds(int n_times, long delay_amount)
