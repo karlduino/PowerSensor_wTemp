@@ -24,11 +24,12 @@ static int greenPin = A2;
 
 unsigned long lastTimeSent, currentTime;
 int numberSent = 0;
-bool lastSaidOff = false;
+boolean lastSaidOff = false;
 static unsigned long TIME_BETWEEN_TEXTS = 600000; // 10 minutes
 static unsigned int MAX_NUM_EMAILS = 8;
 static unsigned int STARTUP_DELAY = 60000; // one minute
 static unsigned int DELAY_BEFORE_TEXT = 5000; // 5 seconds
+static unsigned int DELAY_BETWEEN_TRIES = 30000; // 30 sec
 
 void setup() {
   pinMode(inputPin, INPUT);
@@ -39,12 +40,14 @@ void setup() {
 #ifdef DEBUG
   Serial.begin(9600);
   while(!Serial);
-  Serial.println("Starting up.");
 #endif  
   
   flash_leds(5, 250);
   digitalWrite(redPin, HIGH);
   digitalWrite(greenPin, HIGH);  
+#ifdef DEBUG
+  Serial.println("Waiting one minute.");
+#endif
   delay(STARTUP_DELAY);
   digitalWrite(redPin, LOW);
   digitalWrite(greenPin, LOW);  
@@ -53,7 +56,7 @@ void setup() {
   Serial.println("Done with startup.");
 #endif  
 
-  send_email("Sump ready", "Sensor ready.");
+  send_email("Sensor ready.");
   flash_leds(5, 250);
 }
 
@@ -72,7 +75,7 @@ void loop() {
      numberSent++;
      lastTimeSent = millis();
      lastSaidOff = false;
-     send_email("Sump working", "The sump pump is working again.");
+     send_email("The sump pump is working again.");
    }
  }
  else {
@@ -93,7 +96,7 @@ void loop() {
        numberSent++;
        lastTimeSent = millis();
        lastSaidOff = true;
-       send_email("Sump down", "The sump pump is DOWN!");
+       send_email("The sump pump is DOWN!");
      }
    }
 
@@ -101,9 +104,9 @@ void loop() {
 }
 
 
-void send_email(char subject[], char message[])
+void send_email(char message[])
 {
-  bool success = false;
+  boolean success = false;
 
   while (!success) {
 
@@ -137,7 +140,7 @@ void send_email(char subject[], char message[])
     // who to send the email to
     SendEmailChoreo.addInput("ToAddress", TO_EMAIL_ADDRESS);
     // then a subject line
-    SendEmailChoreo.addInput("Subject", subject);
+    SendEmailChoreo.addInput("Subject", "Sump pump");
 
      // next comes the message body, the main content of the email   
     SendEmailChoreo.addInput("MessageBody", message);
@@ -154,14 +157,10 @@ void send_email(char subject[], char message[])
 #endif        
         success = true;
     } else {
-      // a non-zero return code means there was an error
-      // read and print the error message
-      while (SendEmailChoreo.available()) {
+        delay(DELAY_BETWEEN_TRIES);
 #ifdef DEBUG      
-        char c = SendEmailChoreo.read();
-        Serial.print(c);
+        Serial.println("That didn't work; waiting 60 sec.");
 #endif
-      }
     } 
     SendEmailChoreo.close();
 
