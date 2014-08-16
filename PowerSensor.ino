@@ -157,13 +157,13 @@ void send_email(char message[])
 #endif        
         success = true;
     } else {
-        delay(DELAY_BETWEEN_TRIES);
 #ifdef DEBUG      
         Serial.println("That didn't work; waiting 60 sec.");
 #endif
     } 
     SendEmailChoreo.close();
 
+    delay(DELAY_BETWEEN_TRIES);
   }
 
 }
