@@ -9,8 +9,6 @@
  Following this sketch: https://temboo.com/arduino/yun/send-an-email
 **/
 
-#define DEBUG
-
 static int inputPin = 2;
 static int redPin = A5;
 static int greenPin = A2;
