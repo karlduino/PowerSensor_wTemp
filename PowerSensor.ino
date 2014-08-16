@@ -9,9 +9,6 @@
  Following this sketch: https://temboo.com/arduino/yun/send-an-email
 **/
 
-#include <SPI.h>
-#include <Ethernet.h>
-
 #define DEBUG
 
 static int inputPin = 2;
@@ -46,15 +43,14 @@ void setup() {
   digitalWrite(redPin, HIGH);
   digitalWrite(greenPin, HIGH);  
 #ifdef DEBUG
-  Serial.println("Waiting one minute.");
+  Serial.println("Starting bridge.");
 #endif
-  delay(STARTUP_DELAY);
+  Bridge.begin();
+#ifdef DEBUG
+  Serial.println("Bridge started.");
+#endif
   digitalWrite(redPin, LOW);
   digitalWrite(greenPin, LOW);  
-
-#ifdef DEBUG
-  Serial.println("Done with startup.");
-#endif  
 
   send_email("Sensor ready.");
   flash_leds(5, 250);
