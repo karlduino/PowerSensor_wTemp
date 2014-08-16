@@ -158,7 +158,7 @@ void send_email(char message[])
         success = true;
     } else {
 #ifdef DEBUG      
-        Serial.println("That didn't work; waiting 60 sec.");
+        Serial.println("That didn't work; waiting 30 sec.");
 #endif
     } 
     SendEmailChoreo.close();
