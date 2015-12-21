@@ -6,6 +6,7 @@ from bridgeclient import BridgeClient
 client=BridgeClient()
 temp = float(client.get("RCT03_Temperature"))
 humidity = float(client.get("RCT03_Humidity"))
+sump = client.get("Sump_Power")
 if "QUERY_STRING" in os.environ:
     unit = os.environ["QUERY_STRING"]
 else:
@@ -66,6 +67,11 @@ print """
            onclick="location.reload();"
            value="Refresh"/>
 </div>    
+<p id="sump">Sump is
+"""
+print sump
+print """
+</p>
 </body>
 </html>
 """
