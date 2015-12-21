@@ -1,5 +1,5 @@
 /**
- PowerSensor
+ PowerSensor_wTemp
  
  Sense power on pin 2
  Power on: green led on pin A2
@@ -7,6 +7,13 @@
 
  If power goes off, send an email (using gmail account and temboo service)
  Following this sketch: https://temboo.com/arduino/yun/send-an-email
+
+ Also: RHT003 attached as follows:
+   pin 1 (left) to 5V
+   pin 2 to pin 12
+   pin 4 (right) to ground
+   10k resistor between pins 1 and 2
+
 **/
 
 static int inputPin = 2;
@@ -16,6 +23,12 @@ static int greenPin = A2;
 #include <Bridge.h>
 #include <Temboo.h>
 #include "TembooAccount.h" // contains Temboo account information
+#include "DHT.h"
+
+#define DHTPIN  12
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+unsigned long lastTimeTempTaken;
 
 unsigned long lastTimeSent, currentTime;
 int numberSent = 0;
@@ -52,9 +65,37 @@ void setup() {
 
   send_email("Sensor ready.");
   flash_leds(5, 250);
+
+  dht.begin();
 }
 
 void loop() {
+  
+  if(millis() > lastTimeTempTaken + 2000) {
+    lastTimeTempTaken = millis();
+    float h = dht.readHumidity();
+    float t = dht.readTemperature(true);
+    if(isnan(h) || isnan(t)) {
+#ifdef DEBUG
+      Serial.println("Failed to read from sensor.");
+#endif
+    }
+    else {
+#ifdef DEBUG
+      Serial.print("Humidity: ");
+      Serial.print(h);
+      Serial.print("%    ");
+      Serial.print("Temp: ");
+      Serial.print(t);
+      Serial.println("*F");
+#endif
+
+      Bridge.put("RCT03_Temperature", String(t));
+      Bridge.put("RCT03_Humidity", String(h));
+    }
+  }
+
+
  if(digitalRead(inputPin) == HIGH) {
    digitalWrite(greenPin, HIGH);
    digitalWrite(redPin, LOW);
