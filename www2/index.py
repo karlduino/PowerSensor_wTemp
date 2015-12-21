@@ -3,9 +3,15 @@ import sys, time, os
 sys.path.insert(0, "/usr/lib/python2.7/bridge")
 from bridgeclient import BridgeClient
 
+def format (val, extra=""):
+    if val == "" or val == None:
+        return("NA")
+    return(("%.1f" % val) + extra)
+
+
 client=BridgeClient()
-temp = float(client.get("RCT03_Temperature"))
-humidity = float(client.get("RCT03_Humidity"))
+temp = format(client.get("RCT03_Temperature"))
+humidity = format(client.get("RCT03_Humidity"), "%")
 sump = client.get("Sump_Power")
 if "QUERY_STRING" in os.environ:
     unit = os.environ["QUERY_STRING"]
@@ -32,7 +38,7 @@ print """
 <div id="panel">
     <p id="temperature" class="lcd">
 """
-print ("%.1f" % temp)
+print temp
 print """
 </p>
     <p id="unit" class="lcd">
@@ -42,7 +48,7 @@ print """
 </p>
     <p id="humidity" class="lcd">
 """
-print ("%.1f%%" % humidity)
+print humidity
 print """</p>
     <p id="date" class="lcd">
 """
@@ -54,7 +60,6 @@ print """
 print time.strftime("%H:%M")
 print """
 </p>
-
     <input type="button" id="btnUnit"
 """
 if unit == "F":
