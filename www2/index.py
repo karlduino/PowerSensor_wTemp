@@ -76,12 +76,18 @@ print """
     <input type="button" id="btnRefresh"
            onclick="location.reload();"
            value="Refresh"/>
-</div>    
-<p id="sump" style="font-family:monospace;">Sump is
+<svg height=80 width=80 style="position:relative;left:580px;top:-80px;">
+<circle cx=40 cy=40 r=35 stroke="black" stroke-width=3 fill=
 """
-print sump
+if sump=="on":
+    print '"#2ECC40"'
+else:
+    print '"#FF4136"'
 print """
-</p>
+></circle>
+<text x=40 y=40 color="white" text-anchor="middle" dominant-baseline="middle">Sump</text>
+</svg>
+</div>    
 </body>
 </html>
 """
