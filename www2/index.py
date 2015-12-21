@@ -72,7 +72,7 @@ print """
            onclick="location.reload();"
            value="Refresh"/>
 </div>    
-<p id="sump">Sump is
+<p id="sump" style="font-family:monospace;">Sump is
 """
 print sump
 print """
