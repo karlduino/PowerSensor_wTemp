@@ -3,27 +3,32 @@ import sys, time, os
 sys.path.insert(0, "/usr/lib/python2.7/bridge")
 from bridgeclient import BridgeClient
 
+# function to format humidity and temperature values
 def format (val, extra=""):
     if val == "" or val == None:
         return("NA")
     return(("%.1f" % float(val)) + extra)
 
 
-client=BridgeClient()
-temp = format(client.get("RCT03_Temperature"))
-humidity = format(client.get("RCT03_Humidity"), "%")
-sump = client.get("Sump_Power")
+# get units 
 if "QUERY_STRING" in os.environ:
     unit = os.environ["QUERY_STRING"]
-else:
+if unit != "C": # only allow C or F
     unit = "F"
-if unit == "":
-    unit = "F"
-if unit=="C":
-    temp = (temp - 32)*5/9
 
+# grab temp, humidity, and sump status
+client=BridgeClient()
+temp = client.get("RCT03_Temperature")
+if unit=="C":
+    if temp != "" and temp != None:
+        temp = float(temp)
+        temp = (temp - 32)*5/9
+temp = format(temp)
+humidity = format(client.get("RCT03_Humidity"), "%")
+sump = client.get("Sump_Power")
+
+# print out web page
 print "Content-type: text/html"
-print
 print """
 <!doctype html>
 <html>
