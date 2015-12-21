@@ -6,7 +6,7 @@ from bridgeclient import BridgeClient
 def format (val, extra=""):
     if val == "" or val == None:
         return("NA")
-    return(("%.1f" % val) + extra)
+    return(("%.1f" % float(val)) + extra)
 
 
 client=BridgeClient()
