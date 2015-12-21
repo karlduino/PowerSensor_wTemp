@@ -6,7 +6,10 @@ from bridgeclient import BridgeClient
 client=BridgeClient()
 temp = float(client.get("RCT03_Temperature"))
 humidity = float(client.get("RCT03_Humidity"))
-unit = os.environ["QUERY_STRING"]
+if "QUERY_STRING" in os.environ:
+    unit = os.environ["QUERY_STRING"]
+else:
+    unit = "F"
 if unit == "":
     unit = "F"
 if unit=="C":
