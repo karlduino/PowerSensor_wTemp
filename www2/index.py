@@ -21,7 +21,7 @@ print """
 <!doctype html>
 <html>
     <head>
-        <title>Karlduino2 temp/humidity monitor</title>
+        <title>Karlduino temp/humidity monitor</title>
         <style>body { font-family: sans-serif; }</style>
         <link rel="stylesheet" href="/css/normal.css" type="text/css"/>
         <meta http-equiv="refresh" content="10">
