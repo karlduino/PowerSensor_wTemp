@@ -71,7 +71,7 @@ void setup() {
 
 void loop() {
   
-  if(millis() > lastTimeTempTaken + 2000) {
+  if(millis() - lastTimeTempTaken > 2000) {
     lastTimeTempTaken = millis();
     float h = dht.readHumidity();
     float t = dht.readTemperature(true);
@@ -103,7 +103,7 @@ void loop() {
    Bridge.put("Sump_Power", "on");
 
    if(numberSent < MAX_NUM_EMAILS &&
-      (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS ||
+      (currentTime - lastTimeSent > TIME_BETWEEN_TEXTS ||
        lastSaidOff)) {
 #ifdef DEBUG
      Serial.print("Sending email (power is on). ");
@@ -125,7 +125,7 @@ void loop() {
      digitalWrite(redPin, HIGH);
   
      if(numberSent==0 || !lastSaidOff ||
-        (currentTime > lastTimeSent + TIME_BETWEEN_TEXTS &&
+        (currentTime - lastTimeSent > TIME_BETWEEN_TEXTS &&
          numberSent < MAX_NUM_EMAILS)) {
 #ifdef DEBUG
        Serial.print("Sending email (power is off). ");
