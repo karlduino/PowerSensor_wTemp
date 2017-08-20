@@ -97,9 +97,9 @@ void loop() {
 
 
  if(digitalRead(inputPin) == HIGH) {
+   currentTime = millis();
    digitalWrite(greenPin, HIGH);
    digitalWrite(redPin, LOW);
-
    Bridge.put("Sump_Power", "on");
 
    if(numberSent < MAX_NUM_EMAILS &&
@@ -116,13 +116,13 @@ void loop() {
    }
  }
  else {
-   Bridge.put("Sump_Power", "off");
    delay(DELAY_BEFORE_TEXT);
 
    if(digitalRead(inputPin) == LOW) { // not a false alarm
      currentTime = millis();
      digitalWrite(greenPin, LOW);
      digitalWrite(redPin, HIGH);
+     Bridge.put("Sump_Power", "off");
   
      if(numberSent==0 || !lastSaidOff ||
         ((currentTime - lastTimeSent > TIME_BETWEEN_TEXTS) &&
